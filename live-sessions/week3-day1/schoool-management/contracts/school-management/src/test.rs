@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use soroban_sdk::{testutils::Address as _, token, vec, Address, Env, String};
+use soroban_sdk::{testutils::Address as _, token, Address, Env, String};
 
 use crate::{
     school_management::{SchoolManagement, SchoolManagementClient},
@@ -65,29 +65,52 @@ fn test_register_student() {
 
     assert_eq!(registration_result, 1);
 }
+
 #[test]
 fn test_get_student() {
     let setup_result = setup();
 
-    setup_result.env.mock_all_auths();
+    let name = String::from_str(&setup_result.env, "Sib");
+
+    let class_name = Class::College;
+
+    setup_result
+        .client
+        .register_student(&setup_result.student_wallet, &name, &class_name);
 
     let student_id = 1;
 
     let result = setup_result.client.get_student(&student_id);
 
     assert_eq!(result.student_id, 1);
+    assert_eq!(result.name, name);
 }
-// #[test]
-// fn test_make_payment() {
-//     let setup_result = setup();
-//
-//     setup_result.env.mock_all_auths();
-//
-//     let student_id = 1;
-//
-//     let amount = 1_000_000;
-//
-//     let result = setup_result.client.try_make_payment(&student_id, &amount);
-//
-//     assert!(result.is_ok())
-// }
+
+#[test]
+fn test_make_payment() {
+    let setup_result = setup();
+
+    let name = String::from_str(&setup_result.env, "Sib");
+
+    let class_name = Class::College;
+
+    setup_result
+        .client
+        .register_student(&setup_result.student_wallet, &name, &class_name);
+
+    let student_id = 1;
+
+    let amount = 1_000_000i128;
+
+    setup_result
+        .token_client
+        .mint(&setup_result.student_wallet, &amount);
+
+    let result = setup_result.client.try_make_payment(&student_id, &amount);
+
+    assert!(result.is_ok());
+
+    let student = setup_result.client.get_student(&student_id);
+
+    assert_eq!(student.total_paid, amount);
+}

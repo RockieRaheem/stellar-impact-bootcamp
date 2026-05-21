@@ -109,6 +109,10 @@ impl SchoolManagement {
             .persistent()
             .set(&DataKey::StudentPayments(student_id), &payments);
 
+        env.storage()
+            .persistent()
+            .set(&DataKey::Student(student_id), &student);
+
         PaymentEvent {
             wallet_address: student.wallet_address,
             student_id,
