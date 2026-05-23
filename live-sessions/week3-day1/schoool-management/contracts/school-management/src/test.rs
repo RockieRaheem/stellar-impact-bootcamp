@@ -158,10 +158,11 @@ fn test_get_student_payment_history() {
         .token_client
         .mint(&setup_result.student_wallet, &amount);
 
-    setup_result
+    let payment_result = setup_result
         .client
-        .make_payment(&student_id, &amount)
-        .unwrap();
+        .try_make_payment(&student_id, &amount);
+
+    assert!(payment_result.is_ok());
 
     let history = setup_result
         .client

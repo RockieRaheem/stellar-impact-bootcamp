@@ -29,7 +29,7 @@ pub enum DataKey {
     StudentCount,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 #[contracttype]
 pub enum Class {
     Grade,
