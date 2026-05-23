@@ -122,4 +122,39 @@ impl SchoolManagement {
 
         Ok(())
     }
+
+    pub fn update_student_class(env: &Env, student_id: u64, class_name: Class) {
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        admin.require_auth();
+
+        let mut student: StudentDetails = Self::get_student(env, student_id);
+        student.class_name = class_name;
+
+        env.storage()
+            .persistent()
+            .set(&DataKey::Student(student_id), &student);
+    }
+
+    pub fn get_student_payment_history(env: &Env, student_id: u64) -> Vec<Payment> {
+        match env
+            .storage()
+            .persistent()
+            .get(&DataKey::StudentPayments(student_id))
+        {
+            Some(payments) => payments,
+            None => Vec::new(env),
+        }
+    }
+
+    pub fn remove_student(env: &Env, student_id: u64) {
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        admin.require_auth();
+
+        let mut student: StudentDetails = Self::get_student(env, student_id);
+        student.is_registered = false;
+
+        env.storage()
+            .persistent()
+            .set(&DataKey::Student(student_id), &student);
+    }
 }

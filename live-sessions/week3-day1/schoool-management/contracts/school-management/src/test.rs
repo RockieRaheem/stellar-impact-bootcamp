@@ -4,7 +4,7 @@ use soroban_sdk::{testutils::Address as _, token, Address, Env, String};
 
 use crate::{
     school_management::{SchoolManagement, SchoolManagementClient},
-    storage::Class,
+    storage::{Class, Payment},
 };
 
 fn create_token_contract<'a>(
@@ -113,4 +113,84 @@ fn test_make_payment() {
     let student = setup_result.client.get_student(&student_id);
 
     assert_eq!(student.total_paid, amount);
+}
+
+#[test]
+fn test_update_student_class() {
+    let setup_result = setup();
+
+    let name = String::from_str(&setup_result.env, "Sib");
+
+    let class_name = Class::College;
+
+    setup_result
+        .client
+        .register_student(&setup_result.student_wallet, &name, &class_name);
+
+    let student_id = 1;
+
+    setup_result
+        .client
+        .update_student_class(&student_id, &Class::HighSchool);
+
+    let student = setup_result.client.get_student(&student_id);
+
+    assert_eq!(student.class_name, Class::HighSchool);
+}
+
+#[test]
+fn test_get_student_payment_history() {
+    let setup_result = setup();
+
+    let name = String::from_str(&setup_result.env, "Sib");
+
+    let class_name = Class::College;
+
+    setup_result
+        .client
+        .register_student(&setup_result.student_wallet, &name, &class_name);
+
+    let student_id = 1;
+
+    let amount = 1_000_000i128;
+
+    setup_result
+        .token_client
+        .mint(&setup_result.student_wallet, &amount);
+
+    setup_result
+        .client
+        .make_payment(&student_id, &amount)
+        .unwrap();
+
+    let history = setup_result
+        .client
+        .get_student_payment_history(&student_id);
+
+    assert_eq!(history.len(), 1);
+
+    let first: Payment = history.get(0).unwrap();
+    assert_eq!(first.amount, amount);
+    assert_eq!(first.student_id, student_id);
+}
+
+#[test]
+fn test_remove_student() {
+    let setup_result = setup();
+
+    let name = String::from_str(&setup_result.env, "Sib");
+
+    let class_name = Class::College;
+
+    setup_result
+        .client
+        .register_student(&setup_result.student_wallet, &name, &class_name);
+
+    let student_id = 1;
+
+    setup_result.client.remove_student(&student_id);
+
+    let student = setup_result.client.get_student(&student_id);
+
+    assert_eq!(student.is_registered, false);
 }
