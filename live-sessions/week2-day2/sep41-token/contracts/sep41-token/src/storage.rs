@@ -8,6 +8,7 @@ pub struct AllowanceKey {
 
 #[contracttype]
 pub enum DataKey {
+    Admin,
     Balance(Address),
     Allowance(AllowanceKey),
 }
